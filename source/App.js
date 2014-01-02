@@ -91,5 +91,154 @@ enyo.kind({
 
     // start ajax
     .go();
+  },
+
+  // feed pet
+  feedPet: function(userId, petId, onSuccessCallback, onFailureCallbackWithMessage, onReceivedPetListCallback) {
+    var win = typeof onSuccessCallback === "function" ? onSuccessCallback : function() {},
+        fail = typeof onFailureCallbackWithMessage === "function" ? onFailureCallbackWithMessage : function() {},
+        cb = typeof onReceivedPetListCallback === "function" ? onReceivedPetListCallback : function() {};
+
+    if (typeof userId !== "string" ||
+        typeof petId  !== "number") {
+      fail("parameters type error");
+      return;
+    }
+
+    // JSONP post
+    FlyJSONP.post({
+      url: "https://imabigfanof.criminalcasegame.com/bridge.php",
+
+      parameters: {
+        query: encodeURIComponent(JSON.stringify({
+          "id": 9,
+          "action": "feedPet",
+          "params": {
+            "user": userId,
+            "foods": [
+              { "pet": petId, "food": 1 }
+            ],
+            "revision": 43
+          }
+        }))
+      },
+
+      // JSONP success
+      success: function(inResponse) {
+
+        /*  success json format
+         *
+         *  { "id": 9,
+         *    "response": [],
+         *    "ts": 1388837457
+         *  }
+         *
+         */
+
+        if (typeof inResponse.error === "undefined") {
+          win();
+          return;
+        }
+
+        // check error
+        if (typeof inResponse.error      !== "object" ||
+            typeof inResponse.error.type !== "string") {
+          fail("server return unexpected response " + JSON.stringify(inResponse));
+          return;
+        }
+
+        /*  failure json format
+         *
+         *  {
+         *    "error": {
+         *      "type": "pet",
+         *      "code": "PET",
+         *      "sync": {
+         *        "cash": 0,
+         *        "coins": 164231,
+         *        "pets": {
+         *          "equipped": 1,
+         *          "adopted": {
+         *            "1": { "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 3 },
+         *            "2": { "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 1 },
+         *            "4": { "level": 2, "loyalty": 159, "cooldown": 68, "food_id": 1 },
+         *            "5": { "level": 2, "loyalty": 134, "cooldown": 68, "food_id": 1 }
+         *          }
+         *        }
+         *      },
+         *      "cash": 0,
+         *      "coins": 164231,
+         *      "pets": {
+         *        "equipped": 1,
+         *        "adopted": {
+         *          "1": { "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 3 },
+         *          "2": { "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 1 },
+         *          "4": { "level": 2, "loyalty": 159, "cooldown": 68, "food_id": 1 },
+         *          "5": { "level": 2, "loyalty": 134, "cooldown": 68, "food_id": 1 }
+         *        }
+         *      }
+         *    }
+         *  }
+         *
+         */
+
+        switch(inResponse.error.type) {
+          // pet
+          case "pet":
+            if (typeof inResponse.error.pets         === "object" &&
+                typeof inResponse.error.pets.adopted === "object") {
+
+              /*  inResponse.error.pets.adopted format
+               *
+               *  {
+               *    "1": { "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 3 },
+               *    "2": { "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 1 },
+               *    "4": { "level": 2, "loyalty": 159, "cooldown": 68, "food_id": 1 },
+               *    "5": { "level": 2, "loyalty": 134, "cooldown": 68, "food_id": 1 }
+               *  }
+               *
+               */
+
+              var petList = [];
+              $.each(inResponse.error.pets.adopted, function(key, petItem) {
+                petItem.id = parseInt(key);
+                petList.push(petItem);
+              });
+
+              /*  petList format
+               *
+               *  [
+               *    { "id": 1, "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 3 },
+               *    { "id": 2, "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 1 },
+               *    { "id": 4, "level": 3, "loyalty": 159, "cooldown": 68, "food_id": 1 },
+               *    { "id": 5, "level": 2, "loyalty": 134, "cooldown": 68, "food_id": 1 }
+               *  ]
+               */
+
+              cb(petList);
+            }
+
+            // check error code
+            if (typeof inResponse.error.code !== "string") {
+              fail("server return unexpected response " + JSON.stringify(inResponse));
+              return;
+            }
+
+            fail("err_" + inResponse.error.code.toLowerCase());  // return 'pet' or 'cooldown'
+            return;
+
+          // other
+          // case "revision":
+          // case "refresh":
+          default:
+            fail("err_" + inResponse.error.type);  // return 'revision', 'refresh' or others
+        }
+      },
+
+      // JSONP error
+      error: function(errorMessage) {
+        fail("JSONP: " + errorMessage);
+      }
+    });
   }
 });

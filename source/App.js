@@ -1,6 +1,30 @@
 enyo.kind({
   name: "App",
 
+  REVISION: 43,
+  PET_NAME: [
+    "German Shepherd",       // 0
+    "Cavalier King Charles", // 1
+    "Labrador Retriever",    // 2
+    "Boxer",                 // 3
+    "Akita",                 // 4
+    "Pug",                   // 5
+    "Chihuahua",             // 6
+    "Collie",                // 7
+    "Dalmatian",             // 8
+    "Jack Russell Terrier",  // 9
+    "St. Bernard",           // 10
+    "Husky",                 // 11
+    "Tiger",                 // 12
+    "Panda",                 // 13
+    "Robot Dog"              // 14
+  ],
+  PET_FOOD: {
+    cookie:  1,  // loyalty:  +1, cooldown:  5 min
+    fish:    2,  // loyalty:  +5, cooldown:  4 hr
+    chicken: 3   // loyalty: +10, cooldown: 12 hr
+  },
+
   components: [
     { tag: "h2", content: "Criminal Case Auto Pet Feed" }
   ],
@@ -116,9 +140,9 @@ enyo.kind({
           "params": {
             "user": userId,
             "foods": [
-              { "pet": petId, "food": 1 }
+              { "pet": petId, "food": this.PET_FOOD.cookie }
             ],
-            "revision": 43
+            "revision": this.REVISION
           }
         }))
       },

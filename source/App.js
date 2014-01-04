@@ -1,5 +1,14 @@
 enyo.kind({
   name: "App",
+  kind: "FittableRows",
+  classes: "app",
+
+  petList: [
+    { "id": 1, "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 3 },
+    { "id": 2, "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 1 },
+    { "id": 4, "level": 3, "loyalty": 159, "cooldown": 68, "food_id": 1 },
+    { "id": 5, "level": 2, "loyalty": 134, "cooldown": 68, "food_id": 1 }
+  ],
 
   REVISION: 43,
   PET_NAME: [
@@ -26,8 +35,67 @@ enyo.kind({
   },
 
   components: [
-    { tag: "h2", content: "Criminal Case Auto Pet Feed" }
+    // Toolbar
+    { kind: "onyx.Toolbar",
+      layoutKind: "FittableColumnsLayout",
+      components: [
+        // Header
+        { name: "toolbarHeader",
+          fit: true,
+          content: "pets"
+        },
+
+        // Setting Button
+        { kind: "onyx.Button",
+          components: [
+            { kind: "Image", src: "assets/setting_icon.png" }
+        ]}
+    ]},
+
+    // Pet List
+    { name: "list",
+      kind: "List",
+      fit: true,
+      onSetupItem: "setupItem",
+
+      // pet item template
+      components: [
+        { name: "petItem",
+          classes: "pet-item",
+          components: [
+            // icon
+            { name: "petIcon", kind: "Image" },
+
+            // info
+            { classes: "info",
+              components: [
+                { name: "petLevel" },
+                { name: "petLoyalty" },
+                { name: "petCooldown" }
+            ]}
+        ]}
+    ]}
   ],
+
+  rendered: function() {
+    this.inherited(arguments);
+    // TODO:
+    this.refreshList();
+  },
+
+  setupItem: function(inSender, inEvent) {
+    var petItem = this.petList[inEvent.index];
+
+    this.$.petIcon.setSrc("assets/pets/" + this.PET_NAME[petItem.id - 1] + ".jpg");
+    this.$.petLevel.setContent("Level: " + petItem.level);
+    this.$.petLoyalty.setContent("Loyalty: " + petItem.loyalty);
+    this.$.petCooldown.setContent("Cooldown: " + petItem.cooldown);
+  },
+
+  refreshList: function() {
+    this.$.list.setCount(this.petList.length);
+    this.$.list.render();
+  },
 
   // get user info by user name or id
   getUserInfoByUserNameOrId: function(userNameOrId, successCallbackWithUserInfo, failureCallbackWithMessage) {

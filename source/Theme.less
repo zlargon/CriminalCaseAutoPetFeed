@@ -24,3 +24,64 @@
 /* Place your Onyx rule overrides here ------------------------ */
 
 /* ----------------------------------------- end rule overrides */
+
+* {
+  font-family: "Courier New";
+}
+
+.app {
+
+  .onyx-toolbar {
+    background-image: none;
+    background-color: steelblue;
+    padding: 5px;
+
+    /* font */
+    font-size: 15px;
+    color: white;
+    text-transform: capitalize;
+    white-space: nowrap;
+
+    .onyx-button {
+      background-image: none;
+      background-color: steelblue;
+      padding: 4px 10px;
+
+      img {
+        width: 27px;
+        height: 27px;
+      }
+    }
+  }
+
+  .pet-item {
+    background-color: white;
+    margin: 7px 5px;
+    border-radius: 4px;
+    height: 80px;
+    border: 1px solid lightgray;
+    box-shadow: 5px 5px 4px rgba(0,0,0,0.4);
+
+    /* height + padding * 2 = 80px */
+    & > * {
+      height: 80px;
+      max-width: 50%;
+      padding: 0;
+      float: left;
+    }
+
+    img {
+      border-radius: 4px 0 0 4px;
+    }
+
+    .info {
+      height: 60px;
+      padding: 10px 0;
+      & > * {
+        height: 14px;
+        font-size: 13px;
+        padding: 3px 0 3px 5px;
+      }
+    }
+  }
+}

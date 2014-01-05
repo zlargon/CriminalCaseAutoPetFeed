@@ -189,8 +189,9 @@ enyo.kind({
   },
 
   startToGetUserIdFromFacebook: function() {
-    var userName = this.$.inputUserName.getValue();
+    this.timerStop();
 
+    var userName = this.$.inputUserName.getValue();
     if (userName === "") {
       this.alert("please set the user name or id");
       return;
@@ -209,24 +210,9 @@ enyo.kind({
         this.userId = userInfo.id;
 
         this.$.userPopup.hide();
-
         this.blockUI("fetch pet list...");
 
-        this.getPetList(
-          this.userId,
-
-          // success
-          enyo.bind(this, function(petList) {
-            this.petList = petList;
-            this.refreshList();
-            this.blockUI(null);
-          }),
-
-          // failure
-          enyo.bind(this, function(errorMessage) {
-            this.blockUI(null);
-            this.alert(errorMessage);
-        }));
+        this.getPetListAndRefreshUI();
       }),
 
       // failure
@@ -251,6 +237,28 @@ enyo.kind({
   refreshList: function() {
     this.$.list.setCount(this.petList.length);
     this.$.list.render();
+  },
+
+  getPetListAndRefreshUI: function() {
+    // get pet list
+    this.getPetList(
+      this.userId,
+
+      // success
+      enyo.bind(this, function(petList) {
+        this.petList = petList;
+        this.refreshList();
+        this.timerStart();
+        this.blockUI(null);
+      }),
+
+      // failure
+      enyo.bind(this, function(errorMessage) {
+        this.blockUI(null);
+        this.petList = [];
+        this.refreshList();
+        this.alert(errorMessage);
+    }));
   },
 
   // get user info by user name or id
@@ -502,7 +510,7 @@ enyo.kind({
                 return;
               }
 
-              fail(errorMessage);
+              fail("fetch pet list failure: " + errorMessage);
           });
         });
 
@@ -530,7 +538,7 @@ enyo.kind({
     $.each(petList, (function(index, pet) {
 
       if (pet.level === 5) {
-        console.log("feed pet " + pet.id + " failure, max level");
+        console.log("feed pet " + this.PET_NAME[pet.id - 1] + "(" + pet.id + ") failure: max level");
         complete();
         return;
       }
@@ -541,16 +549,16 @@ enyo.kind({
         this.PET_FOOD.cookie,
 
         // feed success
-        function() {
-          console.log("feed pet " + pet.id + " success");
+        enyo.bind(this, function() {
+          console.log("feed pet " + this.PET_NAME[pet.id - 1] + "(" + pet.id + ") success");
           complete();
-        },
+        }),
 
         // feed failure
-        function(errorMessage) {
-          console.log("feed pet " + pet.id + " failure, " + errorMessage);
+        enyo.bind(this, function(errorMessage) {
+          console.log("feed pet " + this.PET_NAME[pet.id - 1] + "(" + pet.id + ") failure: " + errorMessage);
           complete();
-      });
+      }));
 
     }).bind(this));
   },
@@ -572,35 +580,41 @@ enyo.kind({
     clearInterval(this.timerId);
   },
   timerStart: function() {
+    this.timerStop();
     this.timerId = setInterval((function() {
+
       for (var i = 0; i < this.petList.length; i++) {
 
+        // 1. check level
         if (this.petList[i].level === 5) {
           continue;
         }
 
+        // 2. decrease cooldown
         this.petList[i].cooldown--;
-        this.$.list.renderRow(i);
-
-        if (this.petList[i].cooldown <= 0) {
-
-          this.timerStop();
-
-          this.blockUI("feeding pets...");
-
-          this.feedPetByList(
-            this.userId,
-            this.petList,
-            enyo.bind(this, function() {
-              this.blockUI(null);
-
-              console.log("feed pet done");
-
-              // TODO: get pet list
-              this.timerStart();
-          }));
+        if (this.petList[i].cooldown > 0) {
+          this.$.list.renderRow(i);
+          continue;
         }
-      }
+
+        // cooldown is done, feed pets
+        this.timerStop();
+        this.blockUI("feeding pets...");
+
+        // 3. feed pets
+        this.feedPetByList(
+          this.userId,
+          this.petList,
+
+          // complete
+          enyo.bind(this, function() {
+            this.blockUI("update pet list...");
+            this.getPetListAndRefreshUI();
+        }));
+        break;
+
+      } /* end of for loop */
+
     }).bind(this), 1000);
   }
 });

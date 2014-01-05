@@ -3,6 +3,7 @@ enyo.kind({
   kind: "FittableRows",
   classes: "app",
 
+  userId: "",
   petList: [
     { "id": 1, "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 3 },
     { "id": 2, "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 1 },
@@ -131,6 +132,14 @@ enyo.kind({
 
   rendered: function() {
     this.inherited(arguments);
+
+    var userName = localStorage.getItem("App.userName");
+
+    if (userName !== null) {
+      this.$.inputUserName.setValue(userName);
+      this.startToGetUserIdFromFacebook();
+    }
+
     // TODO:
     this.refreshList();
   },
@@ -146,8 +155,41 @@ enyo.kind({
   },
 
   startToGetUserIdFromFacebook: function() {
-    // TODO:
-    this.$.userPopup.hide();
+    var userName = this.$.inputUserName.getValue();
+
+    if (userName === "") {
+      this.$.alertMessage.setContent("please set the user name or id");
+      this.$.alert.show();
+      return;
+    }
+
+    this.$.blockUI.show();
+
+    this.getUserInfoByUserNameOrId(
+      userName,
+
+      // success
+      enyo.bind(this, function(userInfo) {
+        localStorage.setItem("App.userName", userName);
+
+        this.$.toolbarHeader.setContent(userInfo.name + "'s pets");
+        this.userId = userInfo.id;
+
+        this.$.userPopup.hide();
+        this.$.blockUI.hide();
+
+        // TODO: feed pet
+      }),
+
+      // failure
+      enyo.bind(this, function(errorMessage) {
+        this.$.blockUI.hide();
+
+        this.$.alertMessage.setContent(errorMessage);
+        this.$.alert.show();
+      })
+    );
+
     return true;
   },
 
@@ -200,15 +242,9 @@ enyo.kind({
        *
        */
 
-      if (typeof inResponse            !== "object" ||
-          typeof inResponse.id         !== "string" ||
-          typeof inResponse.name       !== "string" ||
-          typeof inResponse.first_name !== "string" ||
-          typeof inResponse.last_name  !== "string" ||
-          typeof inResponse.link       !== "string" ||
-          typeof inResponse.username   !== "string" ||
-          typeof inResponse.gender     !== "string" ||
-          typeof inResponse.locale     !== "string") {
+      if (typeof inResponse      !== "object" ||
+          typeof inResponse.id   !== "string" ||
+          typeof inResponse.name !== "string") {
         fail("server return unexpected response");
         return;
       }

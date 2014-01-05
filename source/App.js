@@ -4,12 +4,7 @@ enyo.kind({
   classes: "app",
 
   userId: "",
-  petList: [
-    { "id": 1, "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 3 },
-    { "id": 2, "level": 5, "loyalty": 0,   "cooldown": 0,  "food_id": 1 },
-    { "id": 4, "level": 3, "loyalty": 159, "cooldown": 68, "food_id": 1 },
-    { "id": 5, "level": 2, "loyalty": 134, "cooldown": 68, "food_id": 1 }
-  ],
+  petList: [],
 
   REVISION: 43,
   PET_NAME: [
@@ -163,6 +158,7 @@ enyo.kind({
       return;
     }
 
+    this.$.loadingMessage.setContent("loading...");
     this.$.blockUI.show();
 
     this.getUserInfoByUserNameOrId(
@@ -178,7 +174,25 @@ enyo.kind({
         this.$.userPopup.hide();
         this.$.blockUI.hide();
 
-        // TODO: feed pet
+        this.$.loadingMessage.setContent("fetching pet list...");
+        this.$.blockUI.show();
+
+        this.getPetList(
+          this.userId,
+
+          // success
+          enyo.bind(this, function(petList) {
+            this.petList = petList;
+            this.refreshList();
+            this.$.blockUI.hide();
+          }),
+
+          // failure
+          enyo.bind(this, function(errorMessage) {
+            this.$.blockUI.hide();
+            this.$.alertMessage.setContent(errorMessage);
+            this.$.alert.show();
+        }));
       }),
 
       // failure

@@ -47,6 +47,7 @@ enyo.kind({
 
         // Setting Button
         { kind: "onyx.Button",
+          ontap: "showUserPopup",
           components: [
             { kind: "Image", src: "assets/setting_icon.png" }
         ]}
@@ -74,6 +75,57 @@ enyo.kind({
                 { name: "petCooldown" }
             ]}
         ]}
+    ]},
+
+    // input facebook user name or id
+    { name: "userPopup",
+      kind: "onyx.Popup",
+      classes: "app-popup",
+      scrim: true,
+      centered: true,
+      modal: true,
+      floating: true,
+      components: [
+        { classes: "title",
+          content: "Please input facebook user name or id"
+        },
+        { kind: "onyx.InputDecorator",
+          classes: "text",
+          components: [
+            { name: "inputUserName",
+              kind: "onyx.Input",
+              placeholder: "user name or id"
+            }
+        ]},
+        { tag: "br" },
+        { kind: "onyx.Button", content: "OK", ontap: "startToGetUserIdFromFacebook" }
+    ]},
+
+    // Alert Popup
+    { name: "alert",
+      kind: "onyx.Popup",
+      classes: "app-popup",
+      scrim: true,
+      centered: true,
+      modal: true,
+      floating: true,
+      components: [
+        { name: "alertMessage", classes: "title" },
+        { tag: "br" },
+        { kind: "onyx.Button", content: "OK", ontap: "hideAlert" }
+    ]},
+
+    // BlockUI
+    { name: "blockUI",
+      kind: "onyx.Popup",
+      floating: true,
+      centered: true,
+      scrim: true,
+      autoDismiss: false,
+      style: "padding: 30px; text-align: center;",
+      components: [
+        { kind: "onyx.Spinner" },
+        { name: "loadingMessage", content: "loading..." }
     ]}
   ],
 
@@ -81,6 +133,22 @@ enyo.kind({
     this.inherited(arguments);
     // TODO:
     this.refreshList();
+  },
+
+  hideAlert: function() {
+    this.$.alert.hide();
+    return true;
+  },
+
+  showUserPopup: function() {
+    this.$.userPopup.show();
+    return true;
+  },
+
+  startToGetUserIdFromFacebook: function() {
+    // TODO:
+    this.$.userPopup.hide();
+    return true;
   },
 
   setupItem: function(inSender, inEvent) {

@@ -290,16 +290,17 @@ enyo.kind({
   },
 
   // feed pet
-  feedPet: function(userId, petId, onSuccessCallback, onFailureCallbackWithMessage, onReceivedPetListCallback) {
-    var win = typeof onSuccessCallback === "function" ? onSuccessCallback : function() {},
-        fail = typeof onFailureCallbackWithMessage === "function" ? onFailureCallbackWithMessage : function() {},
-        cb = typeof onReceivedPetListCallback === "function" ? onReceivedPetListCallback : function() {};
+  feedPet: function(userId, petId, petFood, onSuccessCallback, onFailureCallbackWithMessageAndPetList) {
 
-    if (typeof userId !== "string" ||
-        typeof petId  !== "number") {
+    if (typeof userId  !== "string" ||
+        typeof petId   !== "number" ||
+        typeof petFood !== "number") {
       fail("parameters type error");
       return;
     }
+
+    var win = enyo.isFunction(onSuccessCallback) ? onSuccessCallback : function() {},
+        fail = enyo.isFunction(onFailureCallbackWithMessageAndPetList) ? onFailureCallbackWithMessageAndPetList : function() {};
 
     // JSONP post
     FlyJSONP.post({
@@ -312,7 +313,7 @@ enyo.kind({
           "params": {
             "user": userId,
             "foods": [
-              { "pet": petId, "food": this.PET_FOOD.cookie }
+              { "pet": petId, "food": petFood }
             ],
             "revision": this.REVISION
           }
@@ -411,23 +412,15 @@ enyo.kind({
                *  ]
                */
 
-              cb(petList);
-            }
-
-            // check error code
-            if (typeof inResponse.error.code !== "string") {
-              fail("server return unexpected response " + JSON.stringify(inResponse));
+              fail("err_" + inResponse.error.code.toLowerCase(), petList); // return 'pet' or 'cooldown'
               return;
             }
-
-            fail("err_" + inResponse.error.code.toLowerCase());  // return 'pet' or 'cooldown'
-            return;
 
           // other
           // case "revision":
           // case "refresh":
           default:
-            fail("err_" + inResponse.error.type);  // return 'revision', 'refresh' or others
+            fail("err_" + inResponse.error.type); // return 'pet', 'revision', 'refresh' or others
         }
       },
 
@@ -436,5 +429,83 @@ enyo.kind({
         fail("JSONP: " + errorMessage);
       }
     });
+  },
+
+  getPetList: function(userId, onSuccessWithPetList, onFailureWithMessage) {
+
+    var win = enyo.isFunction(onSuccessWithPetList) ? onSuccessWithPetList : function() {},
+        fail = enyo.isFunction(onFailureWithMessage) ? onFailureWithMessage : function() {},
+        fn = enyo.bind(this, function(petId) {
+          this.feedPet(
+            userId,
+            petId,
+            this.PET_FOOD.cookie,
+
+            // feed success
+            function() {
+              // feed success, but couldn't get the pet list from here
+              // try to feed it again to make it occur error
+              fn(petId);
+            },
+
+            // feed failure
+            function(errorMessage, petList) {
+
+              if (Array.isArray(petList)) {
+                win(petList);
+                return;
+              }
+
+              fail(errorMessage);
+          });
+        });
+
+    // start get pet list
+    fn(15);
+  },
+
+  feedPetByList: function(userId, petList, onComplete) {
+
+    var complete = (function() {
+      var counter = 0;
+
+      return function() {
+        counter++;
+
+        if (counter === petList.length) {
+
+          if (enyo.isFunction(onComplete)) {
+            onComplete();
+          }
+        }
+      }
+    })();
+
+    $.each(petList, (function(index, pet) {
+
+      if (pet.level === 5) {
+        console.log("feed pet " + pet.id + " failure, max level");
+        complete();
+        return;
+      }
+
+      this.feedPet(
+        userId,
+        pet.id,
+        this.PET_FOOD.cookie,
+
+        // feed success
+        function() {
+          console.log("feed pet " + pet.id + " success");
+          complete();
+        },
+
+        // feed failure
+        function(errorMessage) {
+          console.log("feed pet " + pet.id + " failure, " + errorMessage);
+          complete();
+      });
+
+    }).bind(this));
   }
 });

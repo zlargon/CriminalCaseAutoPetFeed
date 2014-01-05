@@ -29,6 +29,10 @@ enyo.kind({
     fish:    2,  // loyalty:  +5, cooldown:  4 hr
     chicken: 3   // loyalty: +10, cooldown: 12 hr
   },
+  PET_MAX_LOYALTY: function(petId, petLevel) {
+    var coefficient = [1, 4, 12, 24, 0];
+    return (20 + Math.ceil(petId / 3) * 10) * coefficient[petLevel - 1];
+  },
 
   components: [
     // Toolbar
@@ -233,12 +237,12 @@ enyo.kind({
   },
 
   setupItem: function(inSender, inEvent) {
-    var petItem = this.petList[inEvent.index];
+    var pet = this.petList[inEvent.index];
 
-    this.$.petIcon.setSrc("assets/pets/" + this.PET_NAME[petItem.id - 1] + ".jpg");
-    this.$.petLevel.setContent("Level: " + petItem.level);
-    this.$.petLoyalty.setContent("Loyalty: " + petItem.loyalty);
-    this.$.petCooldown.setContent("Cooldown: " + petItem.cooldown);
+    this.$.petIcon.setSrc("assets/pets/" + this.PET_NAME[pet.id - 1] + ".jpg");
+    this.$.petLevel.setContent("Level: " + pet.level);
+    this.$.petLoyalty.setContent("Loyalty: " + pet.loyalty + "/" + this.PET_MAX_LOYALTY(pet.id, pet.level));
+    this.$.petCooldown.setContent("Cooldown: " + this.timerFormat(pet.cooldown));
   },
 
   refreshList: function() {
@@ -546,5 +550,17 @@ enyo.kind({
       });
 
     }).bind(this));
+  },
+
+  timerFormat: function(second) {
+    if (second < 0) {
+      return "00:00:00";
+    }
+
+    var sec = second % 60,
+        min = Math.floor(second / 60 % 60),
+        hr  = Math.floor(second / 60 / 60);
+
+    return enyo.format("%s:%s:%s", hr, min, sec).replace(/\b(\d)\b/g, "0$1");
   }
 });

@@ -546,7 +546,9 @@ enyo.kind({
       this.feedPet(
         userId,
         pet.id,
-        this.PET_FOOD.cookie,
+
+        // feed food chicken (loyalty +10) at last time to max level 5
+        (pet.level === 4 && this.PET_MAX_LOYALTY(pet.id, pet.level) - pet.loyalty <= 10) ? this.PET_FOOD.chicken : this.PET_FOOD.cookie,
 
         // feed success
         enyo.bind(this, function() {

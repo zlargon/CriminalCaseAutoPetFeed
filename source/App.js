@@ -105,18 +105,9 @@ enyo.kind({
 
     // Alert Popup
     { name: "alert",
-      kind: "onyx.Popup",
-      classes: "app-popup",
+      kind: "ConfirmPopup",
       onkeyup: "keyupEventHandler",
-      scrim: true,
-      centered: true,
-      modal: true,
-      floating: true,
-      components: [
-        { name: "alertMessage", classes: "title" },
-        { tag: "br" },
-        { kind: "onyx.Button", content: "OK", ontap: "alert" }
-    ]},
+    },
 
     // BlockUI
     { name: "blockUI",
@@ -156,7 +147,7 @@ enyo.kind({
     this.$.alert.hide();
 
     if (enyo.isString(message)) {
-      this.$.alertMessage.setContent(message);
+      this.$.alert.setMainText(message);
       this.$.alert.show();
     }
   },

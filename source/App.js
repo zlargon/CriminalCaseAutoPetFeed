@@ -77,6 +77,7 @@ enyo.kind({
     { name: "userPopup",
       kind: "onyx.Popup",
       classes: "app-popup",
+      onkeyup: "keyupEventHandler",
       scrim: true,
       centered: true,
       modal: true,
@@ -90,6 +91,7 @@ enyo.kind({
           components: [
             { name: "inputUserName",
               kind: "onyx.Input",
+              selectOnFocus: true,
               placeholder: "user name or id"
             }
         ]},
@@ -101,6 +103,7 @@ enyo.kind({
     { name: "alert",
       kind: "onyx.Popup",
       classes: "app-popup",
+      onkeyup: "keyupEventHandler",
       scrim: true,
       centered: true,
       modal: true,
@@ -146,6 +149,28 @@ enyo.kind({
 
   showUserPopup: function() {
     this.$.userPopup.show();
+    this.$.inputUserName.focus();
+    return true;
+  },
+
+  keyupEventHandler: function(inSender, inEvent) {
+
+    // Enter
+    if (inEvent.keyCode !== 13) {
+      return true;
+    }
+
+    switch(inSender.name) {
+
+      case "userPopup":
+        this.startToGetUserIdFromFacebook();
+        break;
+
+      case "alert":
+        inSender.hide();
+        break;
+    }
+
     return true;
   },
 

@@ -141,9 +141,6 @@ enyo.kind({
       this.$.inputUserName.setValue(userName);
       this.startToGetUserIdFromFacebook();
     }
-
-    // TODO:
-    this.refreshList();
   },
 
   hideAlert: function() {
@@ -552,6 +549,8 @@ enyo.kind({
     }).bind(this));
   },
 
+  // timer
+  timerId: -1,
   timerFormat: function(second) {
     if (second < 0) {
       return "00:00:00";
@@ -562,5 +561,40 @@ enyo.kind({
         hr  = Math.floor(second / 60 / 60);
 
     return enyo.format("%s:%s:%s", hr, min, sec).replace(/\b(\d)\b/g, "0$1");
+  },
+  timerStop: function() {
+    clearInterval(this.timerId);
+  },
+  timerStart: function() {
+    this.timerId = setInterval((function() {
+      for (var i = 0; i < this.petList.length; i++) {
+
+        if (this.petList[i].level === 5) {
+          continue;
+        }
+
+        this.petList[i].cooldown--;
+        this.$.list.renderRow(i);
+
+        if (this.petList[i].cooldown <= 0) {
+
+          this.timerStop();
+          this.$.loadingMessage.setContent("Feeding Pets...");
+          this.$.blockUI.show();
+
+          this.feedPetByList(
+            this.userId,
+            this.petList,
+            enyo.bind(this, function() {
+              this.$.blockUI.hide();
+
+              console.log("feed pet done");
+
+              // TODO: get pet list
+              this.timerStart();
+          }));
+        }
+      }
+    }).bind(this), 1000);
   }
 });

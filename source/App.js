@@ -115,7 +115,7 @@ enyo.kind({
       components: [
         { name: "alertMessage", classes: "title" },
         { tag: "br" },
-        { kind: "onyx.Button", content: "OK", ontap: "hideAlert" }
+        { kind: "onyx.Button", content: "OK", ontap: "alert" }
     ]},
 
     // BlockUI
@@ -128,7 +128,7 @@ enyo.kind({
       style: "padding: 30px; text-align: center;",
       components: [
         { kind: "onyx.Spinner" },
-        { name: "loadingMessage", content: "loading..." }
+        { name: "blockUIMessage", content: "loading..." }
     ]}
   ],
 
@@ -143,9 +143,22 @@ enyo.kind({
     }
   },
 
-  hideAlert: function() {
+  blockUI: function(message) {
+    this.$.blockUI.hide();
+
+    if (enyo.isString(message)) {
+      this.$.blockUIMessage.setContent(message);
+      this.$.blockUI.show();
+    }
+  },
+
+  alert: function(message) {
     this.$.alert.hide();
-    return true;
+
+    if (enyo.isString(message)) {
+      this.$.alertMessage.setContent(message);
+      this.$.alert.show();
+    }
   },
 
   showUserPopup: function() {
@@ -179,13 +192,11 @@ enyo.kind({
     var userName = this.$.inputUserName.getValue();
 
     if (userName === "") {
-      this.$.alertMessage.setContent("please set the user name or id");
-      this.$.alert.show();
+      this.alert("please set the user name or id");
       return;
     }
 
-    this.$.loadingMessage.setContent("loading...");
-    this.$.blockUI.show();
+    this.blockUI("loading...");
 
     this.getUserInfoByUserNameOrId(
       userName,
@@ -198,10 +209,8 @@ enyo.kind({
         this.userId = userInfo.id;
 
         this.$.userPopup.hide();
-        this.$.blockUI.hide();
 
-        this.$.loadingMessage.setContent("fetching pet list...");
-        this.$.blockUI.show();
+        this.blockUI("fetch pet list...");
 
         this.getPetList(
           this.userId,
@@ -210,23 +219,20 @@ enyo.kind({
           enyo.bind(this, function(petList) {
             this.petList = petList;
             this.refreshList();
-            this.$.blockUI.hide();
+            this.blockUI(null);
           }),
 
           // failure
           enyo.bind(this, function(errorMessage) {
-            this.$.blockUI.hide();
-            this.$.alertMessage.setContent(errorMessage);
-            this.$.alert.show();
+            this.blockUI(null);
+            this.alert(errorMessage);
         }));
       }),
 
       // failure
       enyo.bind(this, function(errorMessage) {
-        this.$.blockUI.hide();
-
-        this.$.alertMessage.setContent(errorMessage);
-        this.$.alert.show();
+        this.blockUI(null);
+        this.alert(errorMessage);
       })
     );
 
@@ -579,14 +585,14 @@ enyo.kind({
         if (this.petList[i].cooldown <= 0) {
 
           this.timerStop();
-          this.$.loadingMessage.setContent("Feeding Pets...");
-          this.$.blockUI.show();
+
+          this.blockUI("feeding pets...");
 
           this.feedPetByList(
             this.userId,
             this.petList,
             enyo.bind(this, function() {
-              this.$.blockUI.hide();
+              this.blockUI(null);
 
               console.log("feed pet done");
 

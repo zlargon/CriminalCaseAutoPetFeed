@@ -65,7 +65,7 @@ enyo.kind({
           classes: "pet-item",
           components: [
             // icon
-            { name: "petIcon", kind: "Image" },
+            { name: "petIcon", classes: "icon" },
 
             // info
             { classes: "info",
@@ -219,7 +219,7 @@ enyo.kind({
   setupItem: function(inSender, inEvent) {
     var pet = this.petList[inEvent.index];
 
-    this.$.petIcon.setSrc("assets/pets/" + this.PET_NAME[pet.id - 1] + ".jpg");
+    this.$.petIcon.setClasses("icon pet-icon-" + (pet.id - 1));
     this.$.petLevel.setContent("Level: " + pet.level);
     this.$.petLoyalty.setContent("Loyalty: " + pet.loyalty + "/" + this.PET_MAX_LOYALTY(pet.id, pet.level));
     this.$.petCooldown.setContent("Cooldown: " + this.timerFormat(pet.cooldown));

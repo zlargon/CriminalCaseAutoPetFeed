@@ -109,6 +109,14 @@ enyo.kind({
       onkeyup: "keyupEventHandler",
     },
 
+    // Leave Popup
+    { name: "leavePopup",
+      kind: "ConfirmPopup",
+      mainText: "Are you sure to leave ?",
+      leftButtonText: "leave",
+      rightButtonText: "stay"
+    },
+
     // BlockUI
     { name: "blockUI",
       kind: "onyx.Popup",
@@ -136,11 +144,39 @@ enyo.kind({
       this.$.inputUserName.setValue(userName);
       this.startToGetUserIdFromFacebook();
     }
+
+    // set leavePopup button callback
+    this.$.leavePopup.setButtonCallback(
+      // left button: leave
+      enyo.bind(this, function() {
+        this.$.leavePopup.hide();
+        navigator.app.exitApp();
+        return true;
+    }));
   },
 
   backButtonHandler: function() {
-    // TODO
-    console.log("backButtonHandler");
+
+    // alert popup
+    if (this.$.alert.showing) {
+      this.$.alert.hide();
+      return;
+    }
+
+    // user popup
+    if (this.$.userPopup.showing) {
+      this.$.userPopup.hide();
+      return;
+    }
+
+    // leave popup
+    if (this.$.leavePopup.showing) {
+      this.$.leavePopup.hide();
+      return;
+    }
+
+    // show leave popup
+    this.$.leavePopup.show();
   },
 
   blockUI: function(message) {

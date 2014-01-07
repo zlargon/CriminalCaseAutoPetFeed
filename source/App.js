@@ -124,6 +124,10 @@ enyo.kind({
   ],
 
   rendered: function() {
+
+    // register phonegap backbutton event
+    document.addEventListener("backbutton", enyo.bind(this, "backButtonHandler"));
+
     this.inherited(arguments);
 
     var userName = localStorage.getItem("App.userName");
@@ -132,6 +136,11 @@ enyo.kind({
       this.$.inputUserName.setValue(userName);
       this.startToGetUserIdFromFacebook();
     }
+  },
+
+  backButtonHandler: function() {
+    // TODO
+    console.log("backButtonHandler");
   },
 
   blockUI: function(message) {

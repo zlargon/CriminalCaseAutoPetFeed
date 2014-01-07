@@ -206,7 +206,7 @@ enyo.kind({
       enyo.bind(this, function(userInfo) {
         localStorage.setItem("App.userName", userName);
 
-        this.$.toolbarHeader.setContent(userInfo.name + "'s pets");
+        this.$.toolbarHeader.setContent(userInfo.name + "'s Pets");
         this.userId = userInfo.id;
 
         this.$.userPopup.hide();
@@ -535,7 +535,7 @@ enyo.kind({
       }
     })();
 
-    $.each(petList, (function(index, pet) {
+    $.each(petList, enyo.bind(this, function(index, pet) {
 
       if (pet.level === 5) {
         console.log("feed pet " + this.PET_NAME[pet.id - 1] + "(" + pet.id + ") failure: max level");
@@ -562,7 +562,7 @@ enyo.kind({
           complete();
       }));
 
-    }).bind(this));
+    }));
   },
 
   // timer
@@ -583,7 +583,7 @@ enyo.kind({
   },
   timerStart: function() {
     this.timerStop();
-    this.timerId = setInterval((function() {
+    this.timerId = setInterval(enyo.bind(this, function() {
 
       for (var i = 0; i < this.petList.length; i++) {
 
@@ -617,6 +617,6 @@ enyo.kind({
 
       } /* end of for loop */
 
-    }).bind(this), 1000);
+    }), 1000);
   }
 });

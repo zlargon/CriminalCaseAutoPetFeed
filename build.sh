@@ -8,6 +8,9 @@ rm $PROJECT_NAME*.zip
 # build enyo
 ./enyo/tools/deploy.js
 
+# add config.xml
+cp config.xml deploy/$PROJECT_NAME
+
 # fix the access image path error
 cd deploy/$PROJECT_NAME
 mkdir -p source/assets

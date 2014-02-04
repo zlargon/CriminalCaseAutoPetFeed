@@ -6,7 +6,7 @@ enyo.kind({
   userId: "",
   petList: [],
 
-  REVISION: 43,
+  REVISION: 44,
   PET_NAME: [
     "German Shepherd",       // 0
     "Cavalier King Charles", // 1
@@ -293,7 +293,21 @@ enyo.kind({
         this.blockUI(null);
         this.petList = [];
         this.refreshList();
-        this.alert(errorMessage);
+
+        // handle err_revision
+        if (errorMessage === "err_revision") {
+          // try to upgrade revision
+          this.REVISION++;
+
+          if (this.REVISION < 50) {
+            console.log("try to upgrade revision to " + this.REVISION);
+            return this.getPetListAndRefreshUI();
+          } else {
+            console.error("Upgrade revision over than 50 failed");
+          }
+        }
+
+        this.alert("fetch pet list failure: " + errorMessage);
     }));
   },
 
@@ -546,7 +560,7 @@ enyo.kind({
                 return;
               }
 
-              fail("fetch pet list failure: " + errorMessage);
+              fail(errorMessage);
           });
         });
 
